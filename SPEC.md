@@ -10,8 +10,8 @@ SimpleSurveys is a lightweight web application for creating and managing surveys
 
 | Layer | Technology |
 |-------|------------|
-| Backend | .NET 8 with Minimal API |
-| Frontend | Angular 17+ |
+| Backend | .NET 9 with Minimal API |
+| Frontend | Angular 21 |
 | Storage | SQLite with Entity Framework Core |
 | Authentication | Cookie-based (admin password, voter tracking) |
 
@@ -54,6 +54,7 @@ SimpleSurveys is a lightweight web application for creating and managing surveys
 | SurveyId | GUID | Survey reference |
 | OptionId | GUID | Selected option reference |
 | VoterToken | string | Cookie-based voter identifier |
+| VoterName | string? | Name entered by the voter |
 | CreatedAt | DateTime | Vote timestamp |
 
 ---
@@ -74,6 +75,7 @@ SimpleSurveys is a lightweight web application for creating and managing surveys
 |--------|----------|-------------|
 | GET | `/api/admin/surveys` | List all surveys |
 | GET | `/api/admin/surveys/{id}` | Get survey with full details |
+| GET | `/api/admin/surveys/{id}/voters` | Get list of voters with their choices |
 | POST | `/api/admin/surveys` | Create new survey |
 | PUT | `/api/admin/surveys/{id}` | Update survey |
 | DELETE | `/api/admin/surveys/{id}` | Delete survey |
@@ -118,14 +120,30 @@ SimpleSurveys is a lightweight web application for creating and managing surveys
     }
   ],
   "totalVotes": 12,
-  "userHasVoted": true
+  "userHasVoted": true,
+  "currentVoterName": "John Doe"
 }
 ```
 
 #### Vote Request
 ```json
 {
-  "optionIds": ["option-guid-1", "option-guid-2"]
+  "optionIds": ["option-guid-1", "option-guid-2"],
+  "voterName": "John Doe"
+}
+```
+
+#### Voters Response (Admin)
+```json
+{
+  "surveyId": "550e8400-e29b-41d4-a716-446655440000",
+  "voters": [
+    {
+      "voterName": "John Doe",
+      "selectedOptions": ["December 15, 2024 at 10:00 AM", "Any day works for me"],
+      "votedAt": "2024-12-10T14:30:00Z"
+    }
+  ]
 }
 ```
 
@@ -144,12 +162,15 @@ SimpleSurveys is a lightweight web application for creating and managing surveys
   - Radio buttons (single select) or checkboxes (multiple select)
   - Current vote counts (always visible)
   - Visual indicator for winning option(s) if deadline passed
-- Submit/Update vote button (disabled if deadline passed)
+- Voter name input field (required before submitting)
+- Submit/Update vote button (disabled if deadline passed or name empty)
 - "You have already voted" indicator if applicable
 
+**Privacy:** Vote counts are visible to all users, but voter names are only visible to admins.
+
 **States:**
-- **Active + Not Voted:** Show voting form
-- **Active + Voted:** Show current selection with option to change
+- **Active + Not Voted:** Show voting form with name input
+- **Active + Voted:** Show current selection and name with option to change
 - **Closed:** Show results only, highlight winner(s)
 
 ### 2. Admin Login (`/admin/login`)
@@ -198,8 +219,12 @@ SimpleSurveys is a lightweight web application for creating and managing surveys
   - Option type selector (Text/Date)
   - Value input (text field or date picker)
   - Delete option button
-  - Drag handle for reordering
+  - Reorder buttons (up/down)
 - "Add Option" button
+- Voters list (edit mode only):
+  - Voter name
+  - Selected options
+  - Vote timestamp
 - Save/Cancel buttons
 
 **Validation:**
@@ -218,9 +243,10 @@ SimpleSurveys is a lightweight web application for creating and managing surveys
 2. Opens /survey/{id}
 3. Views survey question and options
 4. Selects option(s)
-5. Clicks "Submit Vote"
-6. System stores vote + sets cookie
-7. User sees confirmation with current results
+5. Enters their name
+6. Clicks "Submit Vote"
+7. System stores vote with name + sets cookie
+8. User sees confirmation with current results
 ```
 
 ### Flow 2: User Changes Vote
