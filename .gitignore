@@ -1,0 +1,29 @@
+# Backend
+backend/**/bin/
+backend/**/obj/
+backend/**/*.db
+backend/**/*.db-shm
+backend/**/*.db-wal
+backend/**/appsettings.Development.json
+
+# Frontend
+frontend/**/node_modules/
+frontend/**/dist/
+frontend/**/.angular/
+frontend/**/.vscode/
+
+# IDE
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.vs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*

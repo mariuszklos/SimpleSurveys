@@ -1,0 +1,65 @@
+<div class="dashboard-container">
+  <header class="dashboard-header">
+    <h1>Survey Dashboard</h1>
+    <div class="header-actions">
+      <a routerLink="/admin/survey/new" class="btn btn-primary">Create Survey</a>
+      <button class="btn btn-secondary" (click)="logout()">Logout</button>
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="error-message">{{ error() }}</div>
+  }
+
+  @if (loading()) {
+    <div class="loading">Loading surveys...</div>
+  } @else if (surveys().length === 0) {
+    <div class="empty-state">
+      <p>No surveys yet</p>
+      <a routerLink="/admin/survey/new" class="btn btn-primary">Create your first survey</a>
+    </div>
+  } @else {
+    <div class="surveys-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Status</th>
+            <th>Deadline</th>
+            <th>Votes</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (survey of surveys(); track survey.id) {
+            <tr>
+              <td class="title-cell">
+                <a [routerLink]="['/admin/survey', survey.id]">{{ survey.title }}</a>
+                <span class="mode-badge">{{ survey.selectionMode }}</span>
+              </td>
+              <td>
+                <span class="status-badge" [class.active]="survey.isActive" [class.closed]="!survey.isActive">
+                  {{ survey.isActive ? 'Active' : 'Closed' }}
+                </span>
+              </td>
+              <td>{{ formatDate(survey.deadline) }}</td>
+              <td>{{ survey.totalVotes }}</td>
+              <td class="actions-cell">
+                <button class="btn-icon" title="Copy link" (click)="copyLink(survey.id)">
+                  {{ copiedId() === survey.id ? 'Copied!' : 'Copy Link' }}
+                </button>
+                <a [routerLink]="['/admin/survey', survey.id]" class="btn-icon" title="Edit">Edit</a>
+                @if (deleteConfirm() === survey.id) {
+                  <button class="btn-icon btn-danger" (click)="deleteSurvey(survey.id)">Confirm</button>
+                  <button class="btn-icon" (click)="cancelDelete()">Cancel</button>
+                } @else {
+                  <button class="btn-icon btn-danger" (click)="confirmDelete(survey.id)">Delete</button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

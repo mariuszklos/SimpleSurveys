@@ -1,0 +1,168 @@
+<div class="editor-container">
+  <header class="editor-header">
+    <h1>{{ isEditMode() ? 'Edit Survey' : 'Create Survey' }}</h1>
+    <a routerLink="/admin" class="btn btn-secondary">Cancel</a>
+  </header>
+
+  @if (loading()) {
+    <div class="loading">Loading...</div>
+  } @else {
+    @if (error()) {
+      <div class="error-message">{{ error() }}</div>
+    }
+
+    <form (ngSubmit)="save()" class="editor-form">
+      <div class="form-section">
+        <h2>Survey Details</h2>
+
+        <div class="form-group">
+          <label for="title">Title *</label>
+          <input
+            type="text"
+            id="title"
+            [(ngModel)]="title"
+            name="title"
+            placeholder="Enter survey question or title"
+            [disabled]="saving()">
+        </div>
+
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea
+            id="description"
+            [(ngModel)]="description"
+            name="description"
+            placeholder="Optional description or instructions"
+            rows="3"
+            [disabled]="saving()"></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="selectionMode">Selection Mode</label>
+            <select
+              id="selectionMode"
+              [(ngModel)]="selectionMode"
+              name="selectionMode"
+              [disabled]="saving()">
+              <option value="Single">Single choice</option>
+              <option value="Multiple">Multiple choice</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="deadline">Deadline *</label>
+            <input
+              type="datetime-local"
+              id="deadline"
+              [(ngModel)]="deadline"
+              name="deadline"
+              [disabled]="saving()">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="section-header">
+          <h2>Options</h2>
+          <button type="button" class="btn btn-small" (click)="addOption()" [disabled]="saving()">
+            Add Option
+          </button>
+        </div>
+
+        <div class="options-list">
+          @for (option of options; track $index; let i = $index) {
+            <div class="option-item">
+              <div class="option-header">
+                <span class="option-number">{{ i + 1 }}</span>
+                <div class="option-actions">
+                  <button
+                    type="button"
+                    class="btn-icon"
+                    (click)="moveOption(i, 'up')"
+                    [disabled]="i === 0 || saving()"
+                    title="Move up">
+                    &uarr;
+                  </button>
+                  <button
+                    type="button"
+                    class="btn-icon"
+                    (click)="moveOption(i, 'down')"
+                    [disabled]="i === options.length - 1 || saving()"
+                    title="Move down">
+                    &darr;
+                  </button>
+                  <button
+                    type="button"
+                    class="btn-icon btn-danger"
+                    (click)="removeOption(i)"
+                    [disabled]="options.length <= 2 || saving()"
+                    title="Remove">
+                    &times;
+                  </button>
+                </div>
+              </div>
+
+              <div class="option-fields">
+                <div class="form-group type-select">
+                  <label [for]="'optionType' + i">Type</label>
+                  <select
+                    [id]="'optionType' + i"
+                    [(ngModel)]="option.optionType"
+                    [name]="'optionType' + i"
+                    [disabled]="saving()">
+                    <option value="Text">Text</option>
+                    <option value="Date">Date</option>
+                  </select>
+                </div>
+
+                <div class="form-group value-input">
+                  @if (option.optionType === 'Text') {
+                    <label [for]="'textValue' + i">Text *</label>
+                    <input
+                      type="text"
+                      [id]="'textValue' + i"
+                      [(ngModel)]="option.textValue"
+                      [name]="'textValue' + i"
+                      placeholder="Enter option text"
+                      [disabled]="saving()">
+                  } @else {
+                    <label [for]="'dateValue' + i">Date *</label>
+                    <input
+                      type="datetime-local"
+                      [id]="'dateValue' + i"
+                      [(ngModel)]="option.dateValue"
+                      [name]="'dateValue' + i"
+                      [disabled]="saving()">
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      @if (isEditMode() && voters().length > 0) {
+        <div class="form-section voters-section">
+          <h2>Voters ({{ voters().length }})</h2>
+          <div class="voters-list">
+            @for (voter of voters(); track $index) {
+              <div class="voter-item">
+                <div class="voter-name">{{ voter.voterName }}</div>
+                <div class="voter-choices">{{ voter.selectedOptions.join(', ') }}</div>
+                <div class="voter-time">{{ formatVotedAt(voter.votedAt) }}</div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <div class="form-actions">
+        <a routerLink="/admin" class="btn btn-secondary">Cancel</a>
+        <button type="submit" class="btn btn-primary" [disabled]="saving()">
+          {{ saving() ? 'Saving...' : (isEditMode() ? 'Update Survey' : 'Create Survey') }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

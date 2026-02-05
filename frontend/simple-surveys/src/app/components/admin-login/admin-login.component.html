@@ -1,0 +1,28 @@
+<div class="login-container">
+  <div class="login-card">
+    <h1>Admin Login</h1>
+    <p class="subtitle">Enter your password to access the admin panel</p>
+
+    @if (error()) {
+      <div class="error-message">{{ error() }}</div>
+    }
+
+    <form (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          [(ngModel)]="password"
+          name="password"
+          placeholder="Enter admin password"
+          [disabled]="loading()"
+          autofocus>
+      </div>
+
+      <button type="submit" [disabled]="loading()">
+        {{ loading() ? 'Logging in...' : 'Login' }}
+      </button>
+    </form>
+  </div>
+</div>

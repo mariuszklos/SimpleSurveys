@@ -1,0 +1,93 @@
+<div class="survey-container">
+  @if (loading()) {
+    <div class="loading">Loading survey...</div>
+  }
+
+  @if (error()) {
+    <div class="error">{{ error() }}</div>
+  }
+
+  @if (survey(); as s) {
+    <div class="survey-card">
+      <div class="survey-header">
+        <h1>{{ s.title }}</h1>
+        @if (s.description) {
+          <p class="description">{{ s.description }}</p>
+        }
+        <div class="meta">
+          <span class="badge" [class.active]="s.isActive" [class.closed]="!s.isActive">
+            {{ s.isActive ? getTimeRemaining() : 'Closed' }}
+          </span>
+          <span class="vote-count">{{ s.totalVotes }} vote{{ s.totalVotes !== 1 ? 's' : '' }}</span>
+          <span class="mode">{{ s.selectionMode === 'Multiple' ? 'Select multiple' : 'Select one' }}</span>
+        </div>
+      </div>
+
+      @if (successMessage()) {
+        <div class="success-message">{{ successMessage() }}</div>
+      }
+
+      <div class="options-list">
+        @for (option of s.options; track option.id) {
+          <div
+            class="option"
+            [class.selected]="isSelected(option.id)"
+            [class.winner]="option.isWinner"
+            [class.disabled]="!s.isActive"
+            (click)="toggleOption(option.id)">
+            <div class="option-content">
+              <div class="option-select">
+                @if (s.selectionMode === 'Single') {
+                  <input
+                    type="radio"
+                    [checked]="isSelected(option.id)"
+                    [disabled]="!s.isActive"
+                    (click)="$event.stopPropagation()">
+                } @else {
+                  <input
+                    type="checkbox"
+                    [checked]="isSelected(option.id)"
+                    [disabled]="!s.isActive"
+                    (click)="$event.stopPropagation()">
+                }
+              </div>
+              <div class="option-text">
+                <span class="option-label">{{ option.displayText }}</span>
+                @if (option.isWinner) {
+                  <span class="winner-badge">Winner</span>
+                }
+              </div>
+              <div class="option-votes">
+                <span class="vote-number">{{ option.voteCount }}</span>
+              </div>
+            </div>
+            <div class="progress-bar">
+              <div class="progress" [style.width.%]="getVotePercentage(option.voteCount)"></div>
+            </div>
+          </div>
+        }
+      </div>
+
+      @if (s.isActive) {
+        <div class="actions">
+          <div class="name-input">
+            <label for="voterName">Your name</label>
+            <input
+              type="text"
+              id="voterName"
+              [value]="voterName()"
+              (input)="voterName.set($any($event.target).value)"
+              placeholder="Enter your name"
+              [disabled]="submitting()">
+          </div>
+          <button
+            class="submit-btn"
+            [disabled]="selectedOptions().size === 0 || submitting() || !voterName().trim()"
+            (click)="submitVote()">
+            {{ submitting() ? 'Submitting...' : (s.userHasVoted ? 'Update Vote' : 'Submit Vote') }}
+          </button>
+        </div>
+      }
+    </div>
+  }
+</div>
