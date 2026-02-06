@@ -1,10 +1,27 @@
 <div class="survey-container">
   @if (loading()) {
-    <div class="loading">Loading survey...</div>
+    <div class="survey-card">
+      <div class="survey-header">
+        <div class="skeleton" style="height: 28px; width: 70%; margin-bottom: 0.75rem;"></div>
+        <div class="skeleton" style="height: 18px; width: 90%; margin-bottom: 1rem;"></div>
+        <div style="display: flex; gap: 1rem;">
+          <div class="skeleton" style="height: 24px; width: 100px; border-radius: 20px;"></div>
+          <div class="skeleton" style="height: 24px; width: 60px;"></div>
+        </div>
+      </div>
+      <div class="options-list">
+        @for (i of [1, 2, 3]; track i) {
+          <div class="skeleton" style="height: 70px; margin-bottom: 0.75rem;"></div>
+        }
+      </div>
+    </div>
   }
 
-  @if (error()) {
-    <div class="error">{{ error() }}</div>
+  @if (notFound()) {
+    <div class="not-found">
+      <h2>Survey Not Found</h2>
+      <p>This survey may have been deleted or the link is incorrect.</p>
+    </div>
   }
 
   @if (survey(); as s) {
@@ -22,10 +39,6 @@
           <span class="mode">{{ s.selectionMode === 'Multiple' ? 'Select multiple' : 'Select one' }}</span>
         </div>
       </div>
-
-      @if (successMessage()) {
-        <div class="success-message">{{ successMessage() }}</div>
-      }
 
       <div class="options-list">
         @for (option of s.options; track option.id) {
@@ -84,7 +97,12 @@
             class="submit-btn"
             [disabled]="selectedOptions().size === 0 || submitting() || !voterName().trim()"
             (click)="submitVote()">
-            {{ submitting() ? 'Submitting...' : (s.userHasVoted ? 'Update Vote' : 'Submit Vote') }}
+            @if (submitting()) {
+              <span class="spinner"></span>
+              <span>Submitting...</span>
+            } @else {
+              {{ s.userHasVoted ? 'Update Vote' : 'Submit Vote' }}
+            }
           </button>
         </div>
       }

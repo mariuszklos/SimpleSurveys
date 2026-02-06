@@ -23,14 +23,14 @@ public class AppDbContext : DbContext
             entity.Property(e => e.SelectionMode)
                 .HasConversion<string>()
                 .HasMaxLength(20);
+            entity.Property(e => e.OptionType)
+                .HasConversion<string>()
+                .HasMaxLength(20);
         });
 
         modelBuilder.Entity<SurveyOption>(entity =>
         {
             entity.HasKey(e => e.Id);
-            entity.Property(e => e.OptionType)
-                .HasConversion<string>()
-                .HasMaxLength(20);
             entity.Property(e => e.TextValue).HasMaxLength(500);
 
             entity.HasOne(e => e.Survey)

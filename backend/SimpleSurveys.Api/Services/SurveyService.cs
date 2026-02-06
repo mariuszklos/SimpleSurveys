@@ -36,14 +36,14 @@ public class SurveyService
             survey.Title,
             survey.Description,
             survey.SelectionMode,
+            survey.OptionType,
             survey.Deadline,
             survey.IsActive,
             survey.Options.Select(o => new OptionResponse(
                 o.Id,
-                o.OptionType,
                 o.TextValue,
                 o.DateValue,
-                o.DisplayText,
+                o.GetDisplayText(survey.OptionType),
                 o.Votes.Count,
                 !survey.IsActive && o.Votes.Count == maxVotes && maxVotes > 0
             )).ToList(),
@@ -122,6 +122,7 @@ public class SurveyService
                 s.Id,
                 s.Title,
                 s.SelectionMode,
+                s.OptionType,
                 s.Deadline,
                 DateTime.UtcNow < s.Deadline,
                 s.Votes.Select(v => v.VoterToken).Distinct().Count(),
@@ -138,6 +139,7 @@ public class SurveyService
             Title = request.Title,
             Description = request.Description,
             SelectionMode = request.SelectionMode,
+            OptionType = request.OptionType,
             Deadline = request.Deadline,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -150,7 +152,6 @@ public class SurveyService
             {
                 Id = Guid.NewGuid(),
                 SurveyId = survey.Id,
-                OptionType = opt.OptionType,
                 TextValue = opt.TextValue,
                 DateValue = opt.DateValue,
                 DisplayOrder = i
@@ -174,6 +175,7 @@ public class SurveyService
         survey.Title = request.Title;
         survey.Description = request.Description;
         survey.SelectionMode = request.SelectionMode;
+        survey.OptionType = request.OptionType;
         survey.Deadline = request.Deadline;
         survey.UpdatedAt = DateTime.UtcNow;
 
@@ -197,7 +199,6 @@ public class SurveyService
                 var existing = survey.Options.FirstOrDefault(o => o.Id == opt.Id.Value);
                 if (existing != null)
                 {
-                    existing.OptionType = opt.OptionType;
                     existing.TextValue = opt.TextValue;
                     existing.DateValue = opt.DateValue;
                     existing.DisplayOrder = i;
@@ -209,7 +210,6 @@ public class SurveyService
                 {
                     Id = Guid.NewGuid(),
                     SurveyId = survey.Id,
-                    OptionType = opt.OptionType,
                     TextValue = opt.TextValue,
                     DateValue = opt.DateValue,
                     DisplayOrder = i
@@ -240,7 +240,7 @@ public class SurveyService
 
         if (survey == null) return null;
 
-        var optionLookup = survey.Options.ToDictionary(o => o.Id, o => o.DisplayText);
+        var optionLookup = survey.Options.ToDictionary(o => o.Id, o => o.GetDisplayText(survey.OptionType));
 
         var voters = survey.Votes
             .GroupBy(v => v.VoterToken)

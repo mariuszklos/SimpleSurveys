@@ -33,6 +33,7 @@ SimpleSurveys is a lightweight web application for creating and managing surveys
 | Title | string | Survey question/title |
 | Description | string? | Optional description |
 | SelectionMode | enum | `Single` or `Multiple` |
+| OptionType | enum | `Text` or `Date` - all options must be same type |
 | Deadline | DateTime | UTC deadline for voting |
 | CreatedAt | DateTime | Creation timestamp |
 | UpdatedAt | DateTime | Last update timestamp |
@@ -42,9 +43,8 @@ SimpleSurveys is a lightweight web application for creating and managing surveys
 |-------|------|-------------|
 | Id | GUID | Unique identifier |
 | SurveyId | GUID | Parent survey reference |
-| OptionType | enum | `Text` or `Date` |
-| TextValue | string? | Text option value |
-| DateValue | DateTime? | Date option value |
+| TextValue | string? | Text option value (used when survey OptionType is Text) |
+| DateValue | DateOnly? | Date option value (used when survey OptionType is Date) |
 | DisplayOrder | int | Order in the list |
 
 ### Vote
@@ -85,17 +85,34 @@ SimpleSurveys is a lightweight web application for creating and managing surveys
 
 ### Request/Response Examples
 
-#### Create Survey Request
+#### Create Survey Request (Text options)
+```json
+{
+  "title": "Which feature should we build next?",
+  "description": "Please vote for your preferred feature",
+  "selectionMode": "Single",
+  "optionType": "Text",
+  "deadline": "2024-12-31T23:59:59Z",
+  "options": [
+    { "textValue": "Dark mode", "dateValue": null },
+    { "textValue": "Export to PDF", "dateValue": null },
+    { "textValue": "Mobile app", "dateValue": null }
+  ]
+}
+```
+
+#### Create Survey Request (Date options)
 ```json
 {
   "title": "When should we have the team meeting?",
   "description": "Please select your preferred dates",
   "selectionMode": "Multiple",
+  "optionType": "Date",
   "deadline": "2024-12-31T23:59:59Z",
   "options": [
-    { "optionType": "Date", "dateValue": "2024-12-15T10:00:00Z" },
-    { "optionType": "Date", "dateValue": "2024-12-16T10:00:00Z" },
-    { "optionType": "Text", "textValue": "Any day works for me" }
+    { "textValue": null, "dateValue": "2024-12-15" },
+    { "textValue": null, "dateValue": "2024-12-16" },
+    { "textValue": null, "dateValue": "2024-12-17" }
   ]
 }
 ```
@@ -107,14 +124,15 @@ SimpleSurveys is a lightweight web application for creating and managing surveys
   "title": "When should we have the team meeting?",
   "description": "Please select your preferred dates",
   "selectionMode": "Multiple",
+  "optionType": "Date",
   "deadline": "2024-12-31T23:59:59Z",
   "isActive": true,
   "options": [
     {
       "id": "...",
-      "optionType": "Date",
-      "dateValue": "2024-12-15T10:00:00Z",
-      "displayText": "December 15, 2024 at 10:00 AM",
+      "textValue": null,
+      "dateValue": "2024-12-15",
+      "displayText": "December 15, 2024",
       "voteCount": 5,
       "isWinner": false
     }
@@ -140,7 +158,7 @@ SimpleSurveys is a lightweight web application for creating and managing surveys
   "voters": [
     {
       "voterName": "John Doe",
-      "selectedOptions": ["December 15, 2024 at 10:00 AM", "Any day works for me"],
+      "selectedOptions": ["December 15, 2024", "December 16, 2024"],
       "votedAt": "2024-12-10T14:30:00Z"
     }
   ]
@@ -214,10 +232,10 @@ SimpleSurveys is a lightweight web application for creating and managing surveys
 - Title input (required)
 - Description textarea (optional)
 - Selection mode toggle (Single/Multiple)
+- Option type selector (Text/Date) - applies to all options, cannot be changed after creation
 - Deadline date-time picker
 - Options list:
-  - Option type selector (Text/Date)
-  - Value input (text field or date picker)
+  - Value input (text field or date picker based on survey option type)
   - Delete option button
   - Reorder buttons (up/down)
 - "Add Option" button
@@ -270,6 +288,27 @@ SimpleSurveys is a lightweight web application for creating and managing surveys
 7. System creates survey
 8. Admin copies link to share
 ```
+
+---
+
+## Date Handling
+
+All dates are stored in UTC and displayed in the user's local timezone.
+
+### Storage
+- **Deadline (DateTime):** Stored in UTC in the database
+- **DateValue (DateOnly):** Stored as date-only (no time component) for date options
+- **CreatedAt/UpdatedAt:** Stored in UTC
+
+### API Format
+- DateTime values are serialized with "Z" suffix to indicate UTC (e.g., `2024-12-31T23:59:59Z`)
+- DateOnly values are serialized as `YYYY-MM-DD` (e.g., `2024-12-15`)
+
+### Display
+- **Frontend:** All DateTime values are converted to local time for display
+- **Date options:** Displayed as formatted date without time (e.g., "December 15, 2024")
+- **Deadline:** Displayed with date and time in local timezone
+- **Editor inputs:** Use local time - converted to UTC when saving
 
 ---
 

@@ -7,6 +7,7 @@ public record CreateSurveyRequest(
     string Title,
     string? Description,
     SelectionMode SelectionMode,
+    OptionType OptionType,
     DateTime Deadline,
     List<CreateOptionRequest> Options
 );
@@ -15,21 +16,20 @@ public record UpdateSurveyRequest(
     string Title,
     string? Description,
     SelectionMode SelectionMode,
+    OptionType OptionType,
     DateTime Deadline,
     List<UpdateOptionRequest> Options
 );
 
 public record CreateOptionRequest(
-    OptionType OptionType,
     string? TextValue,
-    DateTime? DateValue
+    DateOnly? DateValue
 );
 
 public record UpdateOptionRequest(
     Guid? Id,
-    OptionType OptionType,
     string? TextValue,
-    DateTime? DateValue
+    DateOnly? DateValue
 );
 
 public record VoteRequest(List<Guid> OptionIds, string? VoterName);
@@ -42,6 +42,7 @@ public record SurveyResponse(
     string Title,
     string? Description,
     SelectionMode SelectionMode,
+    OptionType OptionType,
     DateTime Deadline,
     bool IsActive,
     List<OptionResponse> Options,
@@ -52,9 +53,8 @@ public record SurveyResponse(
 
 public record OptionResponse(
     Guid Id,
-    OptionType OptionType,
     string? TextValue,
-    DateTime? DateValue,
+    DateOnly? DateValue,
     string DisplayText,
     int VoteCount,
     bool IsWinner
@@ -64,6 +64,7 @@ public record SurveyListItemResponse(
     Guid Id,
     string Title,
     SelectionMode SelectionMode,
+    OptionType OptionType,
     DateTime Deadline,
     bool IsActive,
     int TotalVotes,

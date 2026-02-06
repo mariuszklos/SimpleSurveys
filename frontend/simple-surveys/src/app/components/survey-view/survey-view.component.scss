@@ -4,14 +4,22 @@
   padding: 0 1rem;
 }
 
-.loading, .error {
+.not-found {
   text-align: center;
-  padding: 2rem;
-  font-size: 1.1rem;
-}
+  padding: 3rem 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 
-.error {
-  color: #dc3545;
+  h2 {
+    margin: 0 0 0.5rem;
+    color: #333;
+  }
+
+  p {
+    margin: 0;
+    color: #666;
+  }
 }
 
 .survey-card {
@@ -210,6 +218,10 @@
     border-radius: 8px;
     cursor: pointer;
     transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
 
     &:hover:not(:disabled) {
       background: #0056b3;
@@ -218,6 +230,13 @@
     &:disabled {
       background: #ccc;
       cursor: not-allowed;
+    }
+
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border-width: 2px;
+      border-top-color: white;
     }
   }
 }

@@ -7,12 +7,31 @@
     </div>
   </header>
 
-  @if (error()) {
-    <div class="error-message">{{ error() }}</div>
-  }
-
   @if (loading()) {
-    <div class="loading">Loading surveys...</div>
+    <div class="surveys-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Status</th>
+            <th>Deadline</th>
+            <th>Votes</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (i of [1, 2, 3]; track i) {
+            <tr>
+              <td><div class="skeleton" style="height: 20px; width: 200px;"></div></td>
+              <td><div class="skeleton" style="height: 20px; width: 60px; border-radius: 20px;"></div></td>
+              <td><div class="skeleton" style="height: 20px; width: 120px;"></div></td>
+              <td><div class="skeleton" style="height: 20px; width: 30px;"></div></td>
+              <td><div class="skeleton" style="height: 20px; width: 180px;"></div></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
   } @else if (surveys().length === 0) {
     <div class="empty-state">
       <p>No surveys yet</p>
@@ -46,7 +65,7 @@
               <td>{{ survey.totalVotes }}</td>
               <td class="actions-cell">
                 <button class="btn-icon" title="Copy link" (click)="copyLink(survey.id)">
-                  {{ copiedId() === survey.id ? 'Copied!' : 'Copy Link' }}
+                  Copy Link
                 </button>
                 <a [routerLink]="['/admin/survey', survey.id]" class="btn-icon" title="Edit">Edit</a>
                 @if (deleteConfirm() === survey.id) {

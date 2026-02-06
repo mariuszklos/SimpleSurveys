@@ -3,11 +3,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ApiService } from '../../services/api.service';
-import { SelectionMode, OptionType, Survey, VoterSummary } from '../../models/survey.models';
+import { ToastService } from '../../services/toast.service';
+import { SelectionMode, OptionType, VoterSummary } from '../../models/survey.models';
 
 interface EditorOption {
   id: string | null;
-  optionType: OptionType;
   textValue: string;
   dateValue: string;
 }
@@ -24,19 +24,20 @@ export class SurveyEditorComponent implements OnInit {
   surveyId = signal<string | null>(null);
   loading = signal(false);
   saving = signal(false);
-  error = signal<string | null>(null);
   voters = signal<VoterSummary[]>([]);
 
   title = '';
   description = '';
   selectionMode: SelectionMode = 'Single';
+  optionType: OptionType = 'Text';
   deadline = '';
   options: EditorOption[] = [];
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private api: ApiService
+    private api: ApiService,
+    private toast: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -55,11 +56,25 @@ export class SurveyEditorComponent implements OnInit {
   setDefaultDeadline(): void {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 7);
-    this.deadline = this.formatDateForInput(tomorrow);
+    this.deadline = this.formatDateTimeForInput(tomorrow);
+  }
+
+  formatDateTimeForInput(date: Date): string {
+    // Format as local time for datetime-local input (YYYY-MM-DDTHH:mm)
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
   }
 
   formatDateForInput(date: Date): string {
-    return date.toISOString().slice(0, 16);
+    // Format as local date for date input (YYYY-MM-DD)
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   loadSurvey(id: string): void {
@@ -69,10 +84,10 @@ export class SurveyEditorComponent implements OnInit {
         this.title = survey.title;
         this.description = survey.description || '';
         this.selectionMode = survey.selectionMode;
-        this.deadline = this.formatDateForInput(new Date(survey.deadline));
+        this.optionType = survey.optionType;
+        this.deadline = this.formatDateTimeForInput(new Date(survey.deadline));
         this.options = survey.options.map(o => ({
           id: o.id,
-          optionType: o.optionType,
           textValue: o.textValue || '',
           dateValue: o.dateValue ? this.formatDateForInput(new Date(o.dateValue)) : ''
         }));
@@ -80,8 +95,9 @@ export class SurveyEditorComponent implements OnInit {
         this.loadVoters(id);
       },
       error: () => {
-        this.error.set('Failed to load survey');
+        this.toast.error('Failed to load survey');
         this.loading.set(false);
+        this.router.navigate(['/admin']);
       }
     });
   }
@@ -106,7 +122,6 @@ export class SurveyEditorComponent implements OnInit {
   addOption(): void {
     this.options.push({
       id: null,
-      optionType: 'Text',
       textValue: '',
       dateValue: ''
     });
@@ -134,10 +149,10 @@ export class SurveyEditorComponent implements OnInit {
 
     for (let i = 0; i < this.options.length; i++) {
       const opt = this.options[i];
-      if (opt.optionType === 'Text' && !opt.textValue.trim()) {
+      if (this.optionType === 'Text' && !opt.textValue.trim()) {
         return `Option ${i + 1} text is required`;
       }
-      if (opt.optionType === 'Date' && !opt.dateValue) {
+      if (this.optionType === 'Date' && !opt.dateValue) {
         return `Option ${i + 1} date is required`;
       }
     }
@@ -148,43 +163,44 @@ export class SurveyEditorComponent implements OnInit {
   save(): void {
     const validationError = this.validate();
     if (validationError) {
-      this.error.set(validationError);
+      this.toast.error(validationError);
       return;
     }
 
     this.saving.set(true);
-    this.error.set(null);
 
     const data = {
       title: this.title.trim(),
       description: this.description.trim() || null,
       selectionMode: this.selectionMode,
+      optionType: this.optionType,
       deadline: new Date(this.deadline).toISOString(),
       options: this.options.map(o => ({
         id: o.id,
-        optionType: o.optionType,
-        textValue: o.optionType === 'Text' ? o.textValue.trim() : null,
-        dateValue: o.optionType === 'Date' ? new Date(o.dateValue).toISOString() : null
+        textValue: this.optionType === 'Text' ? o.textValue.trim() : null,
+        dateValue: this.optionType === 'Date' ? o.dateValue : null
       }))
     };
 
     if (this.isEditMode()) {
       this.api.updateSurvey(this.surveyId()!, data).subscribe({
         next: () => {
+          this.toast.success('Survey updated');
           this.router.navigate(['/admin']);
         },
         error: (err) => {
-          this.error.set(err.error?.error || 'Failed to update survey');
+          this.toast.error(err.error?.error || 'Failed to update survey');
           this.saving.set(false);
         }
       });
     } else {
       this.api.createSurvey(data).subscribe({
         next: () => {
+          this.toast.success('Survey created');
           this.router.navigate(['/admin']);
         },
         error: (err) => {
-          this.error.set(err.error?.error || 'Failed to create survey');
+          this.toast.error(err.error?.error || 'Failed to create survey');
           this.saving.set(false);
         }
       });

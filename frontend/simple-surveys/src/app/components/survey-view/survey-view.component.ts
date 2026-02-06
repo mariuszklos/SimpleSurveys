@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
+import { ToastService } from '../../services/toast.service';
 import { Survey } from '../../models/survey.models';
 
 @Component({
@@ -17,13 +18,13 @@ export class SurveyViewComponent implements OnInit {
   selectedOptions = signal<Set<string>>(new Set());
   voterName = signal('');
   loading = signal(true);
-  error = signal<string | null>(null);
+  notFound = signal(false);
   submitting = signal(false);
-  successMessage = signal<string | null>(null);
 
   constructor(
     private route: ActivatedRoute,
-    private api: ApiService
+    private api: ApiService,
+    private toast: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -35,7 +36,7 @@ export class SurveyViewComponent implements OnInit {
 
   loadSurvey(id: string): void {
     this.loading.set(true);
-    this.error.set(null);
+    this.notFound.set(false);
 
     this.api.getSurvey(id).subscribe({
       next: (survey) => {
@@ -46,8 +47,8 @@ export class SurveyViewComponent implements OnInit {
         this.loading.set(false);
         this.loadMyVotes(id);
       },
-      error: (err) => {
-        this.error.set('Survey not found');
+      error: () => {
+        this.notFound.set(true);
         this.loading.set(false);
       }
     });
@@ -91,25 +92,23 @@ export class SurveyViewComponent implements OnInit {
 
     const name = this.voterName().trim();
     if (!name) {
-      this.error.set('Please enter your name');
+      this.toast.error('Please enter your name');
       return;
     }
 
     this.submitting.set(true);
-    this.successMessage.set(null);
-    this.error.set(null);
 
     this.api.vote(survey.id, {
       optionIds: Array.from(this.selectedOptions()),
       voterName: name
     }).subscribe({
       next: () => {
-        this.successMessage.set('Vote submitted successfully!');
+        this.toast.success(survey.userHasVoted ? 'Vote updated!' : 'Vote submitted!');
         this.submitting.set(false);
         this.loadSurvey(survey.id);
       },
       error: (err) => {
-        this.error.set(err.error?.error || 'Failed to submit vote');
+        this.toast.error(err.error?.error || 'Failed to submit vote');
         this.submitting.set(false);
       }
     });

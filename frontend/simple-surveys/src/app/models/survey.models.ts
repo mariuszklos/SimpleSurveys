@@ -3,7 +3,6 @@ export type OptionType = 'Text' | 'Date';
 
 export interface SurveyOption {
   id: string;
-  optionType: OptionType;
   textValue: string | null;
   dateValue: string | null;
   displayText: string;
@@ -16,6 +15,7 @@ export interface Survey {
   title: string;
   description: string | null;
   selectionMode: SelectionMode;
+  optionType: OptionType;
   deadline: string;
   isActive: boolean;
   options: SurveyOption[];
@@ -28,6 +28,7 @@ export interface SurveyListItem {
   id: string;
   title: string;
   selectionMode: SelectionMode;
+  optionType: OptionType;
   deadline: string;
   isActive: boolean;
   totalVotes: number;
@@ -38,12 +39,12 @@ export interface CreateSurveyRequest {
   title: string;
   description: string | null;
   selectionMode: SelectionMode;
+  optionType: OptionType;
   deadline: string;
   options: CreateOptionRequest[];
 }
 
 export interface CreateOptionRequest {
-  optionType: OptionType;
   textValue: string | null;
   dateValue: string | null;
 }
@@ -52,13 +53,13 @@ export interface UpdateSurveyRequest {
   title: string;
   description: string | null;
   selectionMode: SelectionMode;
+  optionType: OptionType;
   deadline: string;
   options: UpdateOptionRequest[];
 }
 
 export interface UpdateOptionRequest {
   id: string | null;
-  optionType: OptionType;
   textValue: string | null;
   dateValue: string | null;
 }

@@ -7,10 +7,6 @@
   @if (loading()) {
     <div class="loading">Loading...</div>
   } @else {
-    @if (error()) {
-      <div class="error-message">{{ error() }}</div>
-    }
-
     <form (ngSubmit)="save()" class="editor-form">
       <div class="form-section">
         <h2>Survey Details</h2>
@@ -47,6 +43,18 @@
               [disabled]="saving()">
               <option value="Single">Single choice</option>
               <option value="Multiple">Multiple choice</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="optionType">Option Type</label>
+            <select
+              id="optionType"
+              [(ngModel)]="optionType"
+              name="optionType"
+              [disabled]="saving() || isEditMode()">
+              <option value="Text">Text</option>
+              <option value="Date">Date</option>
             </select>
           </div>
 
@@ -104,20 +112,8 @@
               </div>
 
               <div class="option-fields">
-                <div class="form-group type-select">
-                  <label [for]="'optionType' + i">Type</label>
-                  <select
-                    [id]="'optionType' + i"
-                    [(ngModel)]="option.optionType"
-                    [name]="'optionType' + i"
-                    [disabled]="saving()">
-                    <option value="Text">Text</option>
-                    <option value="Date">Date</option>
-                  </select>
-                </div>
-
-                <div class="form-group value-input">
-                  @if (option.optionType === 'Text') {
+                <div class="form-group value-input full-width">
+                  @if (optionType === 'Text') {
                     <label [for]="'textValue' + i">Text *</label>
                     <input
                       type="text"
@@ -129,7 +125,7 @@
                   } @else {
                     <label [for]="'dateValue' + i">Date *</label>
                     <input
-                      type="datetime-local"
+                      type="date"
                       [id]="'dateValue' + i"
                       [(ngModel)]="option.dateValue"
                       [name]="'dateValue' + i"

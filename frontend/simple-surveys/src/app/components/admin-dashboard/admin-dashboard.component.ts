@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
+import { ToastService } from '../../services/toast.service';
 import { SurveyListItem } from '../../models/survey.models';
 
 @Component({
@@ -15,13 +16,12 @@ import { SurveyListItem } from '../../models/survey.models';
 export class AdminDashboardComponent implements OnInit {
   surveys = signal<SurveyListItem[]>([]);
   loading = signal(true);
-  error = signal<string | null>(null);
   deleteConfirm = signal<string | null>(null);
-  copiedId = signal<string | null>(null);
 
   constructor(
     private api: ApiService,
-    public authService: AuthService
+    public authService: AuthService,
+    private toast: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -36,7 +36,7 @@ export class AdminDashboardComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('Failed to load surveys');
+        this.toast.error('Failed to load surveys');
         this.loading.set(false);
       }
     });
@@ -54,10 +54,12 @@ export class AdminDashboardComponent implements OnInit {
     this.api.deleteSurvey(id).subscribe({
       next: () => {
         this.deleteConfirm.set(null);
+        this.toast.success('Survey deleted');
         this.loadSurveys();
       },
       error: () => {
-        this.error.set('Failed to delete survey');
+        this.toast.error('Failed to delete survey');
+        this.deleteConfirm.set(null);
       }
     });
   }
@@ -65,8 +67,7 @@ export class AdminDashboardComponent implements OnInit {
   copyLink(id: string): void {
     const url = `${window.location.origin}/survey/${id}`;
     navigator.clipboard.writeText(url).then(() => {
-      this.copiedId.set(id);
-      setTimeout(() => this.copiedId.set(null), 2000);
+      this.toast.success('Link copied to clipboard');
     });
   }
 
