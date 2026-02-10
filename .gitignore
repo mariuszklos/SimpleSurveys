@@ -5,6 +5,9 @@ backend/**/*.db
 backend/**/*.db-shm
 backend/**/*.db-wal
 backend/**/appsettings.Development.json
+backend/**/deploy/
+backend/**/publish/
+backend/**/publish-sc/
 
 # Frontend
 frontend/**/node_modules/
@@ -19,6 +22,9 @@ frontend/**/.vscode/
 *.userosscache
 *.sln.docstates
 .vs/
+
+# Claude
+.claude/
 
 # OS
 .DS_Store
