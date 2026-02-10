@@ -15,7 +15,7 @@ import {
   providedIn: 'root'
 })
 export class ApiService {
-  private baseUrl = 'http://localhost:5226/api';
+  private baseUrl = '/api';
 
   constructor(private http: HttpClient) {}
 

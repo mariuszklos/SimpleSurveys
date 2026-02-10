@@ -56,6 +56,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors();
+app.UseDefaultFiles();
+app.UseStaticFiles();
 
 // Map endpoints
 app.MapPublicEndpoints();
@@ -63,6 +65,9 @@ app.MapAdminEndpoints(app.Configuration);
 
 // Health check
 app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));
+
+// SPA fallback - serve index.html for unmatched routes
+app.MapFallbackToFile("index.html");
 
 app.Run();
 
